@@ -184,8 +184,6 @@ ggsave(filename = "bacteriaNMDS.png", width = 400, height = 300, units = "mm")
 stF.prop <- transform_sample_counts(stF, function(otu) otu/sum(otu))
 ord.nmds.braystF <- ordinate(stF.prop, method="NMDS", distance="bray")
 
-###FIGURE OF NMDS FOR MANUSCRIPT
-plot_ordination(stF.prop, ord.nmds.braystF, title="Bray NMDS",color="collection_site")
 
 ###OTHER PHYLOSEQ ANALYSES
 #heatmap
