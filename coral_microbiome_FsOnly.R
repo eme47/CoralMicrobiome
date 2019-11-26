@@ -160,6 +160,26 @@ ord.nmds.brayF <- ordinate(psF.prop, method="NMDS", distance="bray")
 
 plot_ordination(psF.prop, ord.nmds.brayF, title="Bray NMDS",color="collection_site")
 
+# Supplemental Figure 1###
+df <- data.frame(ord.nmds.braystF$points) %>%
+  mutate(site = str_sub(rownames(ord.nmds.braystF$points), 1, 1)) %>%
+  group_by(site) %>%
+  mutate(c1 = mean(MDS1), c2 = mean(MDS2))
+sites <- as_labeller(c(M="Mermaid Reef", S="Sandy Cay Reef"))
+ggplot(df, aes(x = MDS1, y = MDS2, color = site)) +
+  geom_point() +
+  geom_segment(aes(x = MDS1, y = MDS2, xend = c1, yend = c2, color = site), lwd = 0.25) +
+  theme_classic()+
+  theme(axis.title.x = element_text(color="transparent"),
+        axis.title.y = element_text(size=20),
+        axis.text.x = element_text(size=20, color="transparent",margin = margin(t=-20)),
+        panel.background = element_rect(color="black"),
+        legend.text = element_text(size=20),
+        legend.position = "right")
+ggsave(filename = "bacteriaNMDS.png", width = 400, height = 300, units = "mm")
+
+ 
+
 #subset taxa Forward reads (minus Mitochondria and Chloroplast)
 stF.prop <- transform_sample_counts(stF, function(otu) otu/sum(otu))
 ord.nmds.braystF <- ordinate(stF.prop, method="NMDS", distance="bray")
@@ -191,11 +211,29 @@ top20stF <- names(sort(taxa_sums(stF), decreasing=TRUE))[1:20]
 ps.top20stF <- transform_sample_counts(stF, function(OTU) OTU/sum(OTU))
 ps.top20stF <- prune_taxa(top20stF, ps.top20stF)
 
+
 plot_bar(ps.top20stF, fill="Genus")
 plot_bar(ps.top20stF, fill="Family")
 plot_bar(ps.top20stF, fill="Phylum")
 plot_bar(ps.top20stF, fill="Kingdom")
 plot_bar(ps.top20stF, fill="Family", x= "collection_site")
+ps.top20stF %>%sample_data
+
+##Figure 7###
+
+install.packages("dichromat")
+library(dichromat)
+site_label = as_labeller(c("mermaid_reef"=" Mermaid Reef", "sandy_cay"= "Sandy Cay Reef"))
+
+plot_bar(ps.top20stF, fill="Family", facet_grid = "collection_site") +
+  scale_fill_manual (values= colorschemes$BluetoDarkOrange.12) +
+  theme_classic() +
+  theme (panel.grid = element_blank(),
+         axis.title = element_text (size=8),
+         axis.text = element_text(size=5, color ="black"))
+
+ggsave(filename = "ASV_families.png", width =120, height= 85, units = "mm")
+
 
 ##breakaway
 devtools::install_github("adw96/breakaway")
@@ -225,6 +263,11 @@ reef_F2= stF %>%
   tax_glom("Family")
 reef_F2
 
+reef_F3=stF %>%
+  subset_samples(collection_site %in% c("mermaid_reef",
+                                        "sandy_cay")) %>%
+  tax_glom("Genus")
+
 
 # water = GlobalPatterns %>%
 #   subset_samples(SampleType %in% c("Freshwater", 
@@ -252,6 +295,14 @@ data.frame("observed_richness"= (observed_f2 %>% summary)$estimate,
   ggplot(aes(x=depth, y=observed_richness, color=type))+
   geom_point()
 
+observed_f3=sample_richness(reef_F3)
+summary(observed_f3)
+data.frame("observed_richness"= (observed_f3 %>% summary)$estimate,
+           "depth"= phyloseq::sample_sums(reef_F3),
+           "type" = reef_F3 %>% sample_data %>% get_variable("collection_site")) %>%
+  ggplot(aes(x=depth, y=observed_richness, color=type))+
+  geom_point()
+
 # observed_c=sample_richness(water)  
 # summary(observed_c)
 # plot(observed_c, water, color="SampleType")
@@ -266,10 +317,25 @@ fa
 plot(fa, reef_F, color="collection_site")
 plot(fa, reef_F, color="sample")
 
+reef_F2
+
 fa2=breakaway(reef_F2)
 fa2
+
+
+reef_F2
+library(ggplot2)
+
+?plot
 plot(fa2, reef_F2, color="collection_site")
-plot(fa2, reef_F2, color="sample")
+plot(fa2, reef_F2, color="collection_site", title = "Breakaway alpha diversity estimates", 
+     xlab= 'Alpha diversity estimate', ylab= 'Coral Sample')
+
+?betta_pic
+
+betta_pic(bF2)
+
+betta_pic(c(1552,1500,884), c(305,675,205), mymain= "Example Title")
 
 
 # ba=breakaway(water)
@@ -293,22 +359,36 @@ reef_F2 %>%
 #error with alpha diversity estimation, therefore used observed alpha diversity from Phyloseq
 ##in lieu of the breakaway estimates
 
-water %>%
-  chao_bunge %>%
-  plot(water, color="SampleType")
-
-bt=betta(summary(ba)$estimate,
-         summary(ba)$error,
-         make_design_matrix(water, "SampleType"))
-bt$table
+fa2
 summary(fa2)$estimate
 summary(fa2)$error
 bF <- betta(summary(fa2)$estimate,
             summary(fa2)$error,
             make_design_matrix(reef_F2,"collection_site"))
+bF2 <- betta(summary(fa2)$estimate,
+            summary(fa2)$error,
+            make_design_matrix(reef_F2,"sample"))
+bF2
+
+betta_pic(summary(fa2)$estimate,summary(fa2)$error, mymain = "Breakaway alpha diversity estimates",
+          mycol = "sample")
+
 ###DIVERSITY DIFFERENCES BETWEEN SANDY CAY and MERMAID###
 bF$table
 write.table(bF$table, "betaFsOnly.tsv", sep="\t", quote = F, col.names=NA)
+
+plot_richness(stF, measure= "Shannon", color = "sample")
+
+bF
+
+
+# Test for difference in multivariate dispersion using betadisper
+library(vegan)
+bcdist <- vegdist(otu_table(stF.prop), method="bray")
+bdisper <- betadisper(bcdist, group = data.frame(sample_data(stF.prop))[, "collection_site"],
+                      type = "centroid", bias.adjust = T)
+permutest(bdisper, pairwise = T)
+bdisper$distances
 
 library(DivNet)
 #level of Order
@@ -421,6 +501,10 @@ plot_tree(physeq, nodelabf=nodeplotboot(), ladderize="left",
           color="collection_site", size= "abundance",
           base.spacing = 0.07,
           shape = "Family")
+
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+
 plot_tree(physeq, nodelabf=nodeplotboot(), ladderize="left",
           color="collection_site", size= "abundance",
           base.spacing = 0.07,
@@ -448,6 +532,7 @@ plot_tree(nomito, color = "collection_site",
           shape = "Family", label.tips = "Class",
           size = "abundance", base.spacing = 0.1,
           plot.margin = 1)
+
 proteos <- subset_taxa(psFbsTree, Phylum =="Proteobacteria")
 plot_tree(proteos, color = "collection_site", 
           shape = "Class", label.tips = "Family",
