@@ -160,6 +160,10 @@ ord.nmds.brayF <- ordinate(psF.prop, method="NMDS", distance="bray")
 
 plot_ordination(psF.prop, ord.nmds.brayF, title="Bray NMDS",color="collection_site")
 
+#subset taxa Forward reads (minus Mitochondria and Chloroplast)
+stF.prop <- transform_sample_counts(stF, function(otu) otu/sum(otu))
+ord.nmds.braystF <- ordinate(stF.prop, method="NMDS", distance="bray")
+
 # Supplemental Figure 1###
 df <- data.frame(ord.nmds.braystF$points) %>%
   mutate(site = str_sub(rownames(ord.nmds.braystF$points), 1, 1)) %>%
@@ -180,9 +184,8 @@ ggsave(filename = "bacteriaNMDS.png", width = 400, height = 300, units = "mm")
 
  
 
-#subset taxa Forward reads (minus Mitochondria and Chloroplast)
-stF.prop <- transform_sample_counts(stF, function(otu) otu/sum(otu))
-ord.nmds.braystF <- ordinate(stF.prop, method="NMDS", distance="bray")
+
+
 
 
 ###OTHER PHYLOSEQ ANALYSES
