@@ -1,5 +1,4 @@
-# CoralMicrobiome
-**Characterization of a thermally tolerant Orbicella faveolata reef in Abaco, The Bahamas**
+# Characterization of a thermally tolerant _Orbicella faveolata_ reef in Abaco, The Bahamas
 
 **Authors**: Katherine E Parker, Jeremy O Ward, Erin M Eggleston, Evan Fedorov, John Everett Parkinson, Craig P Dahlgren, Ross Cunning
 **Journal**: _Coral Reefs_
