@@ -14,4 +14,4 @@ This work analyses the abiotic and biotic factors contributing to higher thermal
 * Raw 16S rRNA amplicon data can be downloaded from the NCBI SRA repository via accession number PRJNA591009 <https://www.ncbi.nlm.nih.gov/bioproject/PRJNA591009>
 
 **Code:**
-* /coral_microbiome_FsOnly.R: Code for amplicon sequencing data QA/QC, dada2 ASV generation and taxonomic assignment, phyloseq analysis and removal of chloroplast and mitochondrial ASVs, visualization of taxonomic data, and diversity estimates using breakaway and divnet.
+* **/coral_microbiome_FsOnly.R**: Code for amplicon sequencing data QA/QC, dada2 ASV generation and taxonomic assignment, phyloseq analysis and removal of chloroplast and mitochondrial ASVs, visualization of taxonomic data, and diversity estimates using breakaway and divnet.
